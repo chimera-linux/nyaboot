@@ -13,7 +13,7 @@ _GLOBAL(_start)
 	subi	r11,r11,4
 	li	r0, 0
 1:	stwu	r0,4(r10)
-	cmp	0,r10,r11
+	cmpw	0,r10,r11
 	bne	1b
 	b	yaboot_start
 

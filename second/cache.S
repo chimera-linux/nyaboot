@@ -40,7 +40,7 @@ LG_CACHE_LINE_SIZE = 5
 flush_icache_range:
 	mfspr	r5,PVR
 	rlwinm	r5,r5,16,16,31
-	cmpi	0,r5,1
+	cmpwi	0,r5,1
 	beqlr				/* for 601, do nothing */
 	li	r5,CACHE_LINE_SIZE-1
 	andc	r3,r3,r5
