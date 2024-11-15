@@ -87,6 +87,7 @@ typedef struct {
      unsigned long   offset;
      unsigned long   load_loc;
      unsigned long   entry;
+     unsigned int    need_swap;
 } loadinfo_t;
 
 typedef void (*kernel_entry_t)( void *,
@@ -109,6 +110,21 @@ static int	is_elf64(loadinfo_t *loadinfo);
 static int      load_elf32(struct boot_file_t *file, loadinfo_t *loadinfo);
 static int      load_elf64(struct boot_file_t *file, loadinfo_t *loadinfo);
 static void     setup_display(void);
+
+static inline __u16 bswap16(__u16 x)
+{
+        return x<<8 | x>>8;
+}
+
+static inline __u32 bswap32(__u32 x)
+{
+        return x>>24 | (x>>8&0xff00) | (x<<8&0xff0000) | x<<24;
+}
+
+static inline __u64 bswap64(__u64 x)
+{
+        return (bswap32(x)+0ULL)<<32 | bswap32(x>>32);
+}
 
 /* Locals & globals */
 
@@ -1195,7 +1211,7 @@ load_elf32(struct boot_file_t *file, loadinfo_t *loadinfo)
 {
      int			i;
      Elf32_Ehdr		*e = &(loadinfo->elf.elf32hdr);
-     Elf32_Phdr		*p, *ph;
+     Elf32_Phdr		*p, *ph = NULL;
      int			size = sizeof(Elf32_Ehdr) - sizeof(Elf_Ident);
      unsigned long	loadaddr;
 
@@ -1328,14 +1344,30 @@ load_elf64(struct boot_file_t *file, loadinfo_t *loadinfo)
 {
      int			i;
      Elf64_Ehdr		*e = &(loadinfo->elf.elf64hdr);
-     Elf64_Phdr		*p, *ph;
+     Elf64_Phdr		*p, *ph = NULL;
      int			size = sizeof(Elf64_Ehdr) - sizeof(Elf_Ident);
      unsigned long	loadaddr;
+
+     if (loadinfo->need_swap) {
+          e->e_type = bswap16(e->e_type);
+          e->e_machine = bswap16(e->e_machine);
+     }
 
      /* Read the rest of the Elf header... */
      if ((*(file->fs->read))(file, size, &e->e_version) < size) {
 	  prom_printf("\nCan't read Elf64 image header\n");
 	  goto bail;
+     }
+
+     if (loadinfo->need_swap) {
+          e->e_version = bswap32(e->e_version);
+          e->e_entry = bswap64(e->e_entry);
+          e->e_phoff = bswap64(e->e_phoff);
+          e->e_shoff = bswap64(e->e_shoff);
+          e->e_flags = bswap32(e->e_flags);
+          e->e_ehsize = bswap16(e->e_ehsize);
+          e->e_phentsize = bswap16(e->e_phentsize);
+          e->e_phnum = bswap16(e->e_phnum);
      }
 
      DEBUG_F("Elf64 header:\n");
@@ -1378,6 +1410,16 @@ load_elf64(struct boot_file_t *file, loadinfo_t *loadinfo)
      loadinfo->memsize = loadinfo->filesize = loadinfo->offset = 0;
      p = ph;
      for (i = 0; i < e->e_phnum; ++i, ++p) {
+          if (loadinfo->need_swap) {
+               p->p_type = bswap32(p->p_type);
+               p->p_flags = bswap32(p->p_flags);
+               p->p_offset = bswap64(p->p_offset);
+               p->p_vaddr = bswap64(p->p_vaddr);
+               p->p_paddr = bswap64(p->p_paddr);
+               p->p_filesz = bswap64(p->p_filesz);
+               p->p_memsz = bswap64(p->p_memsz);
+               p->p_align = bswap64(p->p_align);
+          }
 	  if (p->p_type != PT_LOAD || p->p_offset == 0)
 	       continue;
 	  if (loadinfo->memsize == 0) {
@@ -1475,14 +1517,25 @@ is_elf64(loadinfo_t *loadinfo)
 {
      Elf64_Ehdr *e = &(loadinfo->elf.elf64hdr);
 
+     switch (e->e_ident[EI_DATA]) {
+          case ELFDATA2MSB:
+               loadinfo->need_swap = 0;
+               break;
+          case ELFDATA2LSB:
+               loadinfo->need_swap = 1;
+               break;
+          default:
+               return 0;
+     }
+
+     __u16 tp = loadinfo->need_swap ? bswap16(e->e_type) : e->e_type;
+
      return (e->e_ident[EI_MAG0]  == ELFMAG0	    &&
 	     e->e_ident[EI_MAG1]  == ELFMAG1	    &&
 	     e->e_ident[EI_MAG2]  == ELFMAG2	    &&
 	     e->e_ident[EI_MAG3]  == ELFMAG3	    &&
 	     e->e_ident[EI_CLASS] == ELFCLASS64  &&
-	     e->e_ident[EI_DATA]  == ELFDATA2MSB &&
-	     (e->e_type == ET_EXEC || e->e_type == ET_DYN) &&
-	     e->e_machine         == EM_PPC64);
+	     (tp == ET_EXEC || tp == ET_DYN));
 }
 
 static void
