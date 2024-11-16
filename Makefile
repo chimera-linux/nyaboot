@@ -37,7 +37,7 @@ YBCC = $(CC)
 
 # The flags for the yaboot binary.
 #
-YBCFLAGS = -Os -m32 -nostdinc -Wall -isystem `$(YBCC) -m32 -print-file-name=include` -fsigned-char
+YBCFLAGS = -Os -m32 -nostdinc -Wall -isystem `$(YBCC) -m32 -print-file-name=include` -fsigned-char -mbig-endian
 YBCFLAGS += -DVERSION="\"${VERSION}${VERSIONEXTRA}\""
 YBCFLAGS += -DTEXTADDR=$(TEXTADDR) -DDEBUG=$(DEBUG)
 YBCFLAGS += -DMALLOCADDR=$(MALLOCADDR) -DMALLOCSIZE=$(MALLOCSIZE)
