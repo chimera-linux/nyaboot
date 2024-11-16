@@ -1724,7 +1724,7 @@ yaboot_main(void)
      if (!useconf)
          useconf = load_config_file(&boot);
 
-     prom_printf("Welcome to yaboot version " VERSION "\n");
+     prom_printf("Welcome to nyaboot version " VERSION "\n");
      prom_printf("Enter \"help\" to get some basic usage information\n");
 
      /* I am fed up with lusers using the wrong partition type and
