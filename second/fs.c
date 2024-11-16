@@ -26,31 +26,12 @@
 
 extern const struct fs_t	of_filesystem;
 extern const struct fs_t	of_net_filesystem;
-extern const struct fs_t	ext2_filesystem;
 extern const struct fs_t        swap_filesystem;
-//extern const struct fs_t	iso_filesystem;
-
-/* Configurable filesystems */
-
-#ifdef CONFIG_FS_XFS
-extern const struct fs_t        xfs_filesystem;
-#endif /* CONFIG_FS_XFS */
-
-#ifdef CONFIG_FS_REISERFS
-extern const struct fs_t        reiserfs_filesystem;
-#endif /* CONFIG_FS_REISERFS */
 
 /* Filesystem handlers yaboot knows about */
 static const struct fs_t *block_filesystems[] = {
      &swap_filesystem,		/* swap signature checker */
-     &ext2_filesystem,		/* ext2 */
-#ifdef CONFIG_FS_XFS
-     &xfs_filesystem,                /* XFS */
-#endif /* CONFIG_FS_XFS */
-#ifdef CONFIG_FS_REISERFS
-     &reiserfs_filesystem,		/* reiserfs */
-#endif /* CONFIG_FS_REISERFS */
-     &of_filesystem,			/* HFS/HFS+, ISO9660, UDF, UFS */
+     &of_filesystem,		/* HFS/HFS+, ISO9660, UDF, UFS */
      NULL
 };
 

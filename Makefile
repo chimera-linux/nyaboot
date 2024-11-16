@@ -59,21 +59,9 @@ ifeq ($(USE_MD5_PASSWORDS),y)
 YBCFLAGS += -DUSE_MD5_PASSWORDS
 endif
 
-ifeq ($(CONFIG_FS_XFS),y)
-YBCFLAGS += -DCONFIG_FS_XFS
-endif
-
-ifeq ($(CONFIG_FS_REISERFS),y)
-YBCFLAGS += -DCONFIG_FS_REISERFS
-endif
-
 # Link flags
 #
 LFLAGS = -Ttext $(TEXTADDR) -Bstatic -melf32ppclinux
-
-# Libraries
-#
-LLIBS = ./libext2fs.a ./libcom_err.a
 
 # For compiling userland utils
 #
@@ -90,7 +78,7 @@ HOSTCFLAGS = -O2 $(CFLAGS) -Wall -I/usr/include
 
 OBJS = second/crt0.o second/yaboot.o second/cache.o second/prom.o second/file.o \
 	second/partition.o second/fs.o second/cfg.o second/setjmp.o second/cmdline.o \
-	second/fs_of.o second/fs_ext2.o second/fs_iso.o second/fs_swap.o \
+	second/fs_of.o second/fs_iso.o second/fs_swap.o \
 	second/iso_util.o \
 	lib/nonstd.o \
 	lib/nosys.o lib/string.o lib/strtol.o lib/vsprintf.o lib/ctype.o lib/malloc.o lib/strstr.o
@@ -99,21 +87,13 @@ ifeq ($(USE_MD5_PASSWORDS),y)
 OBJS += second/md5.o
 endif
 
-ifeq ($(CONFIG_FS_XFS),y)
-OBJS += second/fs_xfs.o
-endif
-
-ifeq ($(CONFIG_FS_REISERFS),y)
-OBJS += second/fs_reiserfs.o
-endif
-
 # compilation
 lgcc = `$(YBCC) -m32 -print-libgcc-file-name`
 
 all: yaboot addnote mkofboot
 
 yaboot: $(OBJS)
-	$(LD) $(LFLAGS) $(OBJS) $(LLIBS) $(lgcc) -o second/$@
+	$(LD) $(LFLAGS) $(OBJS) $(lgcc) -o second/$@
 	chmod -x second/yaboot
 
 addnote:
