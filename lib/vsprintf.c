@@ -158,9 +158,10 @@ static char * number(char * str, long long num, int base, int size, int precisio
 		tmp[i++]='0';
 	else while (num != 0)
         {
-                int t = ((long long) num) % (unsigned int) base;
+                /* avoid 64-bit division; nothing uses printf with %Ld here */
+                int t = ((long) num) % (unsigned int) base;
 		tmp[i++] = digits[t];
-                num = ((long long) num) / (unsigned int) base;
+                num = ((long) num) / (unsigned int) base;
         }
 	if (i > precision)
 		precision = i;

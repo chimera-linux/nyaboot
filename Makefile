@@ -87,13 +87,10 @@ ifeq ($(USE_MD5_PASSWORDS),y)
 OBJS += second/md5.o
 endif
 
-# compilation
-lgcc = `$(YBCC) -m32 -print-libgcc-file-name`
-
 all: yaboot addnote mkofboot
 
 yaboot: $(OBJS)
-	$(LD) $(LFLAGS) $(OBJS) $(lgcc) -o second/$@
+	$(LD) $(LFLAGS) $(OBJS) -o second/$@
 	chmod -x second/yaboot
 
 addnote:
